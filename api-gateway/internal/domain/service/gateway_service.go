@@ -35,7 +35,7 @@ func NewGatewayService(cache port.CacheRepository) GatewayService {
 }
 
 func (g *gatewayService) ValidateRequest(ctx context.Context, path string, method string) error {
-	// Add validation logic here
+	// TODO: Implement validate request
 	return nil
 }
 

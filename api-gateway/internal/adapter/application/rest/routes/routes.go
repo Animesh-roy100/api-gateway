@@ -28,4 +28,5 @@ func SetupRoutes(rg *gin.RouterGroup) {
 	// Define routes
 	SetupPaymentRoutes(proxyHandler, rg)
 	SetupUserRoutes(proxyHandler, rg)
+	SetupProductRoutes(proxyHandler, rg)
 }
