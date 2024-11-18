@@ -25,6 +25,9 @@ func (h *ProxyHandler) Handle(c *gin.Context) {
 		return
 	}
 
+	// fmt.Println("body: ", body) // in bytes
+	// fmt.Println("method: ", c.Request.Method)
+
 	response, err := h.gatewayService.ProxyRequest(
 		c.Request.Context(),
 		c.Request.URL.Path,
@@ -32,6 +35,8 @@ func (h *ProxyHandler) Handle(c *gin.Context) {
 		c.Request.Header,
 		body,
 	)
+
+	// fmt.Println("response: ", response)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -45,6 +50,6 @@ func (h *ProxyHandler) Handle(c *gin.Context) {
 		}
 	}
 
-	// Forward the status code and body
+	// Forward the status code and body to the client
 	c.Data(response.StatusCode, c.ContentType(), response.Body)
 }

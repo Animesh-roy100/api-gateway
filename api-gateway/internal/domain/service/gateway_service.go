@@ -21,8 +21,8 @@ type gatewayService struct {
 func NewGatewayService(cache port.CacheRepository) GatewayService {
 	// Initialize service routes
 	serviceMap := map[string]string{
-		"/users":    "http://localhost:5002",
 		"/products": "http://localhost:5001",
+		"/users":    "http://localhost:5002",
 		"/payments": "http://localhost:5003",
 	}
 
@@ -43,8 +43,10 @@ func (g *gatewayService) ValidateRequest(ctx context.Context, path string, metho
 func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error) {
 	// Find target service
 	var targetService string
+	fmt.Println("path in proxy request: ", path)
 	normalizedPath := path
 
+	// check if the target service and path exists
 	for prefix, url := range g.serviceMap {
 		if strings.HasPrefix(path, prefix) {
 			targetService = url
@@ -59,6 +61,7 @@ func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method s
 
 	// Construct the full URL
 	fullURL := targetService + normalizedPath
+	fmt.Println("full url: ", fullURL)
 
 	// Create new request
 	req, err := http.NewRequestWithContext(ctx, method, fullURL, bytes.NewReader(body))

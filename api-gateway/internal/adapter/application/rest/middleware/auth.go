@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var jwtSecret = []byte("your-secret-key")
+var jwtSecret = []byte("my-secret")
 
 func Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
