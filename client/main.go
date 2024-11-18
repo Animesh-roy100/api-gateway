@@ -8,7 +8,7 @@ import (
 // Created client to test the api-gateway
 func main() {
 	apiClient := client.NewAPIClient(client.GatewayURL)
-	apiClient.SetAuthToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcGktZ2F0ZXdheSIsInN1YiI6InVzZXIxMjMiLCJleHAiOjE3MzE5NjU4MjR9.cpkFWP91P2_iNTDHEYkPDRkYE-BX3BKfYTGqiXCetB4")
+	apiClient.SetAuthToken()
 
 	// user service
 	if err := apiClient.GetUser("1"); err != nil {

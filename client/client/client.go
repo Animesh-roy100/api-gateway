@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 const (
@@ -28,8 +30,22 @@ func NewAPIClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) SetAuthToken(token string) {
-	c.authToken = token
+func (c *Client) SetAuthToken() {
+	secret := []byte("my-secret")
+	claims := jwt.RegisteredClaims{
+		Subject:   "animesh",
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)), // 1-hour expiration
+		Issuer:    "api-gateway",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Println("Generated Token:", signedToken)
+	c.authToken = signedToken
 }
 
 func (c *Client) sendRequest(method, path string, payload interface{}) error {
