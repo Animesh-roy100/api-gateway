@@ -11,7 +11,6 @@ import (
 
 const (
 	GatewayURL = "http://localhost:5000"
-	// AuthToken  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcGktZ2F0ZXdheSIsInN1YiI6InVzZXIxMjMiLCJleHAiOjE3MzE5MzA5ODB9.oof6armkn-mlfHLosN0iDu3jZIL01wVD45mNFCQ5VSM"
 )
 
 type Client struct {
