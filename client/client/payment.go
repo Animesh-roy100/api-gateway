@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"bytes"
@@ -14,13 +14,13 @@ func (c *Client) MakePayment(payment map[string]interface{}) error {
 		return fmt.Errorf("error marshaling payment: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/payments", gatewayURL)
+	url := fmt.Sprintf("%s/payments", GatewayURL)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+authToken)
+	req.Header.Set("Authorization", "Bearer "+AuthToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)

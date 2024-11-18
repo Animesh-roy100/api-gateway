@@ -1,8 +1,13 @@
-package main
+package client
 
 import (
 	"net/http"
 	"time"
+)
+
+const (
+	GatewayURL = "http://localhost:5000/api/v1"
+	AuthToken  = "auihefrwiqoleabfpqwlr3bgvhjavrwiqrd"
 )
 
 type Client struct {

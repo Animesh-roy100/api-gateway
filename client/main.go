@@ -1,14 +1,12 @@
 package main
 
-import "log"
-
-const (
-	gatewayURL = "http://localhost:5000/api/v1"
-	authToken  = "auihefrwiqoleabfpqwlr3bgvhjavrwiqrd"
+import (
+	"client/client"
+	"log"
 )
 
 func main() {
-	client := NewAPIClient(gatewayURL)
+	client := client.NewAPIClient(client.GatewayURL)
 
 	// user service
 	if err := client.GetUser("1"); err != nil {
