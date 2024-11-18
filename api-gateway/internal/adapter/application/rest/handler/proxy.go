@@ -3,6 +3,7 @@ package handler
 import (
 	"api-gateway/internal/domain/service"
 	"io"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,7 @@ func NewProxyHandler(gs service.GatewayService) *ProxyHandler {
 func (h *ProxyHandler) Handle(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to read request body"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read request body"})
 		return
 	}
 
@@ -33,15 +34,17 @@ func (h *ProxyHandler) Handle(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Set headers from the response
 	for key, values := range response.Headers {
 		for _, value := range values {
 			c.Header(key, value)
 		}
 	}
 
-	c.Data(response.StatusCode, "application/json", response.Body)
+	// Forward the status code and body
+	c.Data(response.StatusCode, c.ContentType(), response.Body)
 }

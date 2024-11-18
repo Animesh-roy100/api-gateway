@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -40,22 +41,14 @@ func (g *gatewayService) ValidateRequest(ctx context.Context, path string, metho
 }
 
 func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error) {
-	// Check cache first
-	if method == "GET" {
-		if cachedResponse, exists := g.cache.Get(ctx, path); exists {
-			return &models.ServiceResponse{
-				StatusCode: http.StatusOK,
-				Body:       cachedResponse,
-				Headers:    map[string][]string{"Content-Type": {"application/json"}},
-			}, nil
-		}
-	}
-
 	// Find target service
-	targetService := ""
+	var targetService string
+	normalizedPath := path
+
 	for prefix, url := range g.serviceMap {
-		if pathHasPrefix(path, prefix) {
+		if strings.HasPrefix(path, prefix) {
 			targetService = url
+			normalizedPath = path[len(prefix):]
 			break
 		}
 	}
@@ -64,13 +57,11 @@ func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method s
 		return nil, fmt.Errorf("no service found for path: %s", path)
 	}
 
+	// Construct the full URL
+	fullURL := targetService + normalizedPath
+
 	// Create new request
-	req, err := http.NewRequestWithContext(
-		ctx,
-		method,
-		targetService+path,
-		bytes.NewReader(body),
-	)
+	req, err := http.NewRequestWithContext(ctx, method, fullURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
@@ -95,24 +86,9 @@ func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method s
 		return nil, fmt.Errorf("error reading response: %w", err)
 	}
 
-	// Cache GET responses
-	if method == "GET" && resp.StatusCode == http.StatusOK {
-		g.cache.Set(ctx, path, responseBody, time.Minute*5) // Cache for 5 minutes
-	}
-
 	return &models.ServiceResponse{
 		StatusCode: resp.StatusCode,
 		Body:       responseBody,
 		Headers:    resp.Header,
 	}, nil
-}
-
-func pathHasPrefix(path, prefix string) bool {
-	if len(path) < len(prefix) {
-		return false
-	}
-	if len(path) == len(prefix) {
-		return path == prefix
-	}
-	return path[0:len(prefix)] == prefix && (path[len(prefix)] == '/' || prefix == "/")
 }
