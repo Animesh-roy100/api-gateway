@@ -13,14 +13,19 @@ import (
 
 func SetupRoutes(rg *gin.RouterGroup) {
 	rateLimiter := ratelimit.NewTokenBucketLimiter(rate.Limit(100), 10)
+	// TODO: Integrate with redis
 	cacheRepo := cache.NewRedisCache("localhost:6379")
 
-	// config := service.NewDefaultConfig()
+	// Gateway service
 	gatewayService := service.NewGatewayService(cacheRepo)
-
 	proxyHandler := handler.NewProxyHandler(gatewayService)
 
+	// IP whitelist instance
+	ipWhitelist := middleware.NewIPWhiteList()
+	ipWhitelist.AddIPs([]string{"ALL"}) // Allowed all IPs
+
 	// Apply middleware to all routes
+	rg.Use(ipWhitelist.Middleware())
 	rg.Use(middleware.Authenticate())
 	rg.Use(middleware.RateLimit(rateLimiter))
 	rg.Use(middleware.CircuitBreaker())
