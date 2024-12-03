@@ -41,29 +41,46 @@ func (g *gatewayService) ValidateRequest(ctx context.Context, path string, metho
 }
 
 func (g *gatewayService) ProxyRequest(ctx context.Context, path string, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error) {
-	// Find target service
-	var targetService string
-	fmt.Println("path in proxy request: ", path)
-	normalizedPath := path
+	cacheKey := method + ":" + path
 
-	// check if the target service and path exists
+	// Try to retrieve from cache
+	if cacheResponse, found := g.cache.Get(ctx, cacheKey); found {
+		return &models.ServiceResponse{
+			StatusCode: http.StatusOK,
+			Body:       cacheResponse,
+			Headers:    map[string][]string{"Cache": {"Hit"}},
+		}, nil
+	}
+
+	response, err := g.MakeRequest(ctx, path, method, headers, body)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %w", err)
+	}
+
+	expiration := 5 * time.Minute
+	if err := g.cache.Set(ctx, cacheKey, response.Body, expiration); err != nil {
+		return nil, fmt.Errorf("error setting cache: %w", err)
+	}
+
+	return response, nil
+}
+
+func (g *gatewayService) MakeRequest(ctx context.Context, path, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error) {
+	targetService := ""
 	for prefix, url := range g.serviceMap {
 		if strings.HasPrefix(path, prefix) {
 			targetService = url
-			normalizedPath = path[len(prefix):]
+			path = path[len(prefix):]
 			break
 		}
 	}
-
 	if targetService == "" {
 		return nil, fmt.Errorf("no service found for path: %s", path)
 	}
 
-	// Construct the full URL
-	fullURL := targetService + normalizedPath
+	fullURL := targetService + path
 	fmt.Println("full url: ", fullURL)
 
-	// Create new request
 	req, err := http.NewRequestWithContext(ctx, method, fullURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)

@@ -8,4 +8,5 @@ import (
 type GatewayService interface {
 	ProxyRequest(ctx context.Context, path string, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error)
 	ValidateRequest(ctx context.Context, path string, method string) error
+	MakeRequest(ctx context.Context, path, method string, headers map[string][]string, body []byte) (*models.ServiceResponse, error)
 }
